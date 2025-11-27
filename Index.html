@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 XAUUSD Signal Bot - FIXED VERSION</title>
+    <style>
+        /* Same CSS as your original - keeping it intact */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c1e 0%, #1a1a2e 100%);
+            color: #e6eef8;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(15, 23, 32, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 {
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+        .status-item { text-align: center; }
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4ade80;
+        }
+        .status-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            background: rgba(7, 16, 26, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #e6eef8;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            background: #0f172a;
+            color: #e6eef8;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+        }
+        .timeframe-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .timeframe-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px;
+            border: 2px solid #334155;
+            background: #0f172a;
+            color: #e6eef8;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .timeframe-btn.active {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #0c0c1e;
+            border-color: #ffd700;
+        }
+        .control-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #4ade80, #22c55e);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(74, 222, 128, 0.3);
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, #64748b, #475569);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .log-container {
+            background: #061018;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid #334155;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .log-entry {
+            padding: 10px 0;
+            border-bottom: 1px solid #1e293b;
+            word-break: break-word;
+        }
+        .log-entry.buy { color: #4ade80; font-weight: bold; }
+        .log-entry.sell { color: #f87171; font-weight: bold; }
+        .log-entry.error { color: #f59e0b; }
+        .log-entry.success { color: #4ade80; }
+        .log-entry.info { color: #60a5fa; }
+        .api-status {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+        .status-box {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            min-width: 120px;
+        }
+        .status-ok { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+        .status-error { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+        .status-unknown { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+        .signal-card {
+            background: rgba(74, 222, 128, 0.1) !important;
+            border-left: 4px solid #4ade80;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .signal-card.sell {
+            background: rgba(248, 113, 113, 0.1) !important;
+            border-left-color: #f87171;
+        }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .control-buttons { flex-direction: column; }
+            .timeframe-selector { flex-direction: column; }
+            .status { grid-template-columns: repeat(2, 1fr); }
+        }
+        .quick-setup {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #4ade80;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .quick-setup h3 { color: #4ade80; margin-bottom: 15px; }
+        .quick-setup pre {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            color: #e6eef8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 XAUUSD Signal Bot - FIXED ✅</h1>
+            <p><strong>🔥 CONTINUOUS SIGNALS</strong> • Engulfing + Pin Bar • Entry + TP/SL</p>
+        </div>
+
+        <div class="api-status">
+            <div class="status-box status-unknown" id="apiStatus">
+                <strong>API Status</strong><br>
+                <span id="apiStatusText">Not Tested</span>
+            </div>
+            <div class="status-box status-unknown" id="telegramStatus">
+                <strong>Telegram</strong><br>
+                <span id="telegramStatusText">Not Configured</span>
+            </div>
+            <div class="status-box status-unknown" id="botStatus">
+                <strong>Bot Status</strong><br>
+                <span id="botStatusText">Stopped</span>
+            </div>
+        </div>
+
+        <div class="quick-setup">
+            <h3>⚡ QUICK SETUP - Copy-Paste in Console (F12)</h3>
+            <pre>localStorage.setItem('XAUUSD_TWELVE_API', 'YOUR_API_KEY');
+localStorage.setItem('XAUUSD_TELEGRAM_TOKEN', 'YOUR_BOT_TOKEN');
+localStorage.setItem('XAUUSD_CHAT_ID', 'YOUR_CHAT_ID');</pre>
+            <p><small>Press F12 → Console → Paste → Enter → Click "Load Keys"</small></p>
+        </div>
+
+        <div class="status">
+            <div class="status-item">
+                <div class="status-value" id="statusRunning">Stopped</div>
+                <div class="status-label">Status</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="totalSignals">0</div>
+                <div class="status-label">Total Signals</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="buySignals">0</div>
+                <div class="status-label">Buy Signals</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="sellSignals">0</div>
+                <div class="status-label">Sell Signals</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="currentPrice">$0.00</div>
+                <div class="status-label">Current Price</div>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>🔑 TwelveData API Key</label>
+                <input type="password" id="twelveKey" placeholder="Enter API Key">
+            </div>
+            <div class="form-group">
+                <label>📱 Telegram Bot Token</label>
+                <input type="password" id="tgToken" placeholder="123456:ABC...">
+            </div>
+            <div class="form-group">
+                <label>💬 Telegram Chat ID</label>
+                <input type="text" id="chatId" placeholder="123456789">
+            </div>
+            <div class="form-group">
+                <label>⏱️ Check Every (seconds)</label>
+                <input type="number" id="intervalSec" value="60" min="30" max="300">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>📊 Timeframes</label>
+            <div class="timeframe-selector">
+                <button class="timeframe-btn active" data-tf="15min">15M</button>
+                <button class="timeframe-btn active" data-tf="1h">1H</button>
+                <button class="timeframe-btn active" data-tf="4h">4H</button>
+            </div>
+        </div>
+
+        <div class="control-buttons">
+            <button class="btn-primary" id="loadKeysBtn">🔑 Load Keys</button>
+            <button class="btn-primary" id="testApiBtn">🧪 Test API</button>
+            <button class="btn-primary" id="startBtn">▶️ START BOT</button>
+            <button class="btn-secondary" id="stopBtn" disabled>⏹️ STOP</button>
+            <button class="btn-danger" id="clearLogBtn">🗑️ Clear</button>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-entry success">🚀 FIXED VERSION - CONTINUOUS SIGNALS!</div>
+            <div class="log-entry success">✅ Duplicate block FIXED - Will give signals FOREVER!</div>
+            <div class="log-entry success">✅ Entry Price + TP/SL + R:R included</div>
+        </div>
+    </div>
+
+    <script>
+        class FixedXAUUSDSignalBot {
+            constructor() {
+                this.timer = null;
+                this.isRunning = false;
+                this.totalSignals = 0;
+                this.buySignals = 0;
+                this.sellSignals = 0;
+                this.selectedTimeframes = ['15min', '1h', '4h'];
+                this.lastSignalTime = new Map(); // FIXED: Time-based duplicate prevention
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.loadSavedKeys();
+                this.log('🚀 FIXED BOT v3.0 INITIALIZED!', 'success');
+                this.log('✅ Duplicate signal blocking FIXED!', 'success');
+                this.log('✅ Will generate signals CONTINUOUSLY!', 'success');
+            }
+
+            bindEvents() {
+                document.getElementById('loadKeysBtn').onclick = () => this.loadSavedKeys();
+                document.getElementById('testApiBtn').onclick = () => this.testApiConnection();
+                document.getElementById('startBtn').onclick = () => this.startBot();
+                document.getElementById('stopBtn').onclick = () => this.stopBot();
+                document.getElementById('clearLogBtn').onclick = () => this.clearLog();
+
+                // Timeframe toggle
+                document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        const tf = e.target.dataset.tf;
+                        const index = this.selectedTimeframes.indexOf(tf);
+                        if (index > -1) {
+                            this.selectedTimeframes.splice(index, 1);
+                            e.target.classList.remove('active');
+                        } else {
+                            this.selectedTimeframes.push(tf);
+                            e.target.classList.add('active');
+                        }
+                        this.log(`📊 Timeframes: ${this.selectedTimeframes.join(', ')}`, 'info');
+                    };
+                });
+            }
+
+            loadSavedKeys() {
+                const apiKey = localStorage.getItem('XAUUSD_TWELVE_API');
+                const tgToken = localStorage.getItem('XAUUSD_TELEGRAM_TOKEN');
+                const chatId = localStorage.getItem('XAUUSD_CHAT_ID');
+                
+                if (apiKey) {
+                    document.getElementById('twelveKey').value = apiKey;
+                    this.log('✅ API Key loaded!', 'success');
+                }
+                if (tgToken) {
+                    document.getElementById('tgToken').value = tgToken;
+                    this.log('✅ Telegram Token loaded!', 'success');
+                }
+                if (chatId) {
+                    document.getElementById('chatId').value = chatId;
+                    this.log('✅ Chat ID loaded!', 'success');
+                }
+            }
+
+            saveKeys() {
+                localStorage.setItem('XAUUSD_TWELVE_API', document.getElementById('twelveKey').value);
+                localStorage.setItem('XAUUSD_TELEGRAM_TOKEN', document.getElementById('tgToken').value);
+                localStorage.setItem('XAUUSD_CHAT_ID', document.getElementById('chatId').value);
+            }
+
+            // 🔥 FIXED: Smart TP/SL Calculation
+            calculateLevels(signal, entryPrice, timeframe) {
+                let tpDistance, slDistance;
+                
+                switch(timeframe) {
+                    case '15min':
+                        tpDistance = 0.80; slDistance = 0.40;
+                        break;
+                    case '1h':
+                        tpDistance = 1.50; slDistance = 0.70;
+                        break;
+                    case '4h':
+                        tpDistance = 2.50; slDistance = 1.20;
+                        break;
+                    default:
+                        tpDistance = 1.20; slDistance = 0.60;
+                }
+
+                let tp, sl;
+                if (signal === 'BUY') {
+                    tp = entryPrice + tpDistance;
+                    sl = entryPrice - slDistance;
+                } else {
+                    tp = entryPrice - tpDistance;
+                    sl = entryPrice + slDistance;
+                }
+
+                const rr = (tpDistance / slDistance).toFixed(1);
+                return { tp: tp.toFixed(2), sl: sl.toFixed(2), rr };
+            }
+
+            // 🔍 Pattern Detection
+            isEngulfing(prev, current) {
+                // Bullish Engulfing
+                if (prev.close < prev.open && current.close > current.open) {
+                    if (current.open <= prev.close && current.close >= prev.open) {
+                        return 'BUY';
+                    }
+                }
+                // Bearish Engulfing
+                if (prev.close > prev.open && current.close < current.open) {
+                    if (current.open >= prev.close && current.close <= prev.open) {
+                        return 'SELL';
+                    }
+                }
+                return null;
+            }
+
+            isPinBar(current) {
+                const body = Math.abs(current.close - current.open);
+                const range = current.high - current.low;
+                
+                if (range <= 0.01 || body / range > 0.35) return null;
+
+                const upperWick = current.high - Math.max(current.open, current.close);
+                const lowerWick = Math.min(current.open, current.close) - current.low;
+
+                // Bullish Pin Bar
+                if (lowerWick >= range * 0.6 && body <= range * 0.35) {
+                    return 'BUY';
+                }
+                // Bearish Pin Bar
+                if (upperWick >= range * 0.6 && body <= range * 0.35) {
+                    return 'SELL';
+                }
+                return null;
+            }
+
+            // 📊 FIXED: Better Data Fetching
+            async fetchCandles(apiKey, interval) {
+                try {
+                    const params = new URLSearchParams({
+                        symbol: 'XAU/USD',
+                        interval: interval,
+                        apikey: apiKey,
+                        outputsize: '5'
+                    });
+                    
+                    const response = await fetch(`https://api.twelvedata.com/time_series?${params}`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'error') throw new Error(data.message);
+                    
+                    return data.values
+                        .map(v => ({
+                            datetime: v.datetime,
+                            open: parseFloat(v.open),
+                            high: parseFloat(v.high),
+                            low: parseFloat(v.low),
+                            close: parseFloat(v.close)
+                        }))
+                        .reverse();
+                } catch (error) {
+                    this.log(`❌ \( {interval}: \){error.message}`, 'error');
+                    throw error;
+                }
+            }
+
+            async sendTelegramMessage(botToken, chatId, message) {
+                try {
+                    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: message,
+                            parse_mode: 'HTML'
+                        })
+                    });
+                    return response.ok;
+                } catch {
+                    return false;
+                }
+            }
+
+            // 🧪 API Test
+            async testApiConnection() {
+                const apiKey = document.getElementById('twelveKey').value.trim();
+                if (!apiKey) {
+                    alert('❌ Enter API Key first!');
+                    return false;
+                }
+
+                try {
+                    this.log('🧪 Testing API...', 'info');
+                    const candles = await this.fetchCandles(apiKey, '15min');
+                    const price = candles[candles.length - 1].close;
+                    
+                    document.getElementById('currentPrice').textContent = `\[ {price.toFixed(2)}`;
+                    this.log(`✅ API OK! Current Price: \]{price.toFixed(2)}`, 'success');
+                    
+                    document.getElementById('apiStatus').className = 'status-box status-ok';
+                    document.getElementById('apiStatusText').textContent = '✅ Connected';
+                    
+                    alert(`✅ API WORKING!\nCurrent Price: \[ {price.toFixed(2)}\nClick START BOT!`);
+                    return true;
+                } catch (error) {
+                    this.log(`❌ API Error: ${error.message}`, 'error');
+                    alert(`❌ API FAILED: ${error.message}`);
+                    return false;
+                }
+            }
+
+            // 🔥 FIXED: Main Signal Detection
+            async checkSignals(apiKey, botToken, chatId) {
+                for (const timeframe of this.selectedTimeframes) {
+                    try {
+                        this.log(`🔍 Checking ${timeframe}...`, 'info');
+                        const candles = await this.fetchCandles(apiKey, timeframe);
+                        
+                        if (candles.length < 2) continue;
+
+                        const prevCandle = candles[candles.length - 2];
+                        const currentCandle = candles[candles.length - 1];
+                        
+                        // 🔥 FIXED: Time-based duplicate prevention (5 min window)
+                        const now = Date.now();
+                        const candleTime = new Date(currentCandle.datetime).getTime();
+                        const signalKey = `\( {timeframe}- \){Math.floor(candleTime / (5 * 60 * 1000)}`;
+                        
+                        if (this.lastSignalTime.has(signalKey)) {
+                            continue; // Skip if signal sent in last 5 minutes
+                        }
+
+                        let finalSignal = null;
+                        let patternTypes = [];
+
+                        // Check patterns
+                        const engulfing = this.isEngulfing(prevCandle, currentCandle);
+                        if (engulfing) {
+                            patternTypes.push('ENGULFING');
+                            finalSignal = engulfing;
+                        }
+
+                        const pinBar = this.isPinBar(currentCandle);
+                        if (pinBar) {
+                            patternTypes.push('PIN BAR');
+                            finalSignal = pinBar; // Pin Bar takes priority
+                        }
+
+                        if (finalSignal) {
+                            // Calculate levels
+                            const levels = this.calculateLevels(finalSignal, currentCandle.close, timeframe);
+                            
+                            // Mark signal as sent
+                            this.lastSignalTime.set(signalKey, now);
+
+                            // Update dashboard
+                            document.getElementById('currentPrice').textContent = ` \]{currentCandle.close.toFixed(2)}`;
+
+                            // Create signal card
+                            const signalCard = document.createElement('div');
+                            signalCard.className = `log-entry ${finalSignal.toLowerCase()} signal-card`;
+                            signalCard.innerHTML = `
+                                <strong>🚨 \( {finalSignal} \){patternTypes.join(' + ')} (${timeframe.toUpperCase()})</strong><br>
+                                💰 <strong>ENTRY:</strong> \[ {currentCandle.close.toFixed(2)}<br>
+                                🎯 <strong>TP:</strong> \]{levels.tp} | 🛑 <strong>SL:</strong> \[ {levels.sl}<br>
+                                ⚖️ <strong>R:R 1:${levels.rr}</strong>
+                            `;
+                            document.getElementById('logContainer').insertBefore(signalCard, document.getElementById('logContainer').firstChild);
+
+                            this.totalSignals++;
+                            if (finalSignal === 'BUY') this.buySignals++;
+                            else this.sellSignals++;
+                            this.updateStatus();
+
+                            this.log(`\( {finalSignal} \){patternTypes.join(' + ')} @ \]{currentCandle.close.toFixed(2)}`, finalSignal.toLowerCase());
+
+                            // Telegram message
+                            const telegramMessage = `🚨 <b>XAUUSD ${finalSignal} SIGNAL</b> 🚨
+
+📊 <b>Timeframe:</b> ${timeframe.toUpperCase()}
+📈 <b>Pattern:</b> ${patternTypes.join(' + ')}
+
+💰 <b>ENTRY:</b> \[ {currentCandle.close.toFixed(2)}
+🎯 <b>TAKE PROFIT:</b> \]{levels.tp}
+🛑 <b>STOP LOSS:</b> $${levels.sl}
+⚖️ <b>R:R:</b> 1:${levels.rr}
+
+🕐 <b>Time:</b> ${new Date().toLocaleString()}
+🔥 <b>TRADE NOW!</b>
+
+#XAUUSD #${finalSignal} #Trading`;
+
+                            if (botToken && chatId) {
+                                const sent = await this.sendTelegramMessage(botToken, chatId, telegramMessage);
+                                this.log(`📱 Telegram: ${sent ? '✅ SENT' : '❌ FAILED'}`, sent ? 'success' : 'error');
+                            }
+
+                            // Rate limiting
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+
+                    } catch (error) {
+                        // Continue with other timeframes
+                    }
+                }
+            }
+
+            updateStatus() {
+                document.getElementById('statusRunning').textContent = this.isRunning ? '🟢 LIVE' : '🔴 STOPPED';
+                document.getElementById('totalSignals').textContent = this.totalSignals;
+                document.getElementById('buySignals').textContent = this.buySignals;
+                document.getElementById('sellSignals').textContent = this.sellSignals;
+            }
+
+            log(message, type = 'info') {
+                const logContainer = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.innerHTML = `[\( {timestamp}] \){message}`;
+                
+                logContainer.insertBefore(logEntry, logContainer.firstChild);
+                
+                if (logContainer.children.length > 100) {
+                    logContainer.removeChild(logContainer.lastChild);
+                }
+                
+                logContainer.scrollTop = 0;
+            }
+
+            clearLog() {
+                document.getElementById('logContainer').innerHTML = 
+                    '<div class="log-entry success">🧹 Log cleared!</div>';
+            }
+
+            async startBot() {
+                const apiKey = document.getElementById('twelveKey').value.trim();
+                if (!apiKey) {
+                    alert('❌ Enter API Key!');
+                    return;
+                }
+
+                const testPassed = await this.testApiConnection();
+                if (!testPassed) return;
+
+                this.isRunning = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('testApiBtn').disabled = true;
+
+                this.saveKeys();
+                this.log('🚀 BOT STARTED SUCCESSFULLY!', 'success');
+                this.log('✅ Continuous signal detection ENABLED', 'success');
+
+                // Run immediately
+                const botToken = document.getElementById('tgToken').value.trim();
+                const chatId = document.getElementById('chatId').value.trim();
+                await this.checkSignals(apiKey, botToken, chatId);
+
+                // Set interval
+                const interval = parseInt(document.getElementById('intervalSec').value) * 1000;
+                this.timer = setInterval(async () => {
+                    await this.checkSignals(apiKey, botToken, chatId);
+                }, interval);
+
+                this.updateStatus();
+            }
+
+            stopBot() {
+                if (this.timer) clearInterval(this.timer);
+                this.isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('testApiBtn').disabled = false;
+                this.log('⏹️ Bot stopped', 'info');
+                this.updateStatus();
+            }
+        }
+
+        // Initialize
+        let signalBot;
+        document.addEventListener('DOMContentLoaded', () => {
+            signalBot = new FixedXAUUSDSignalBot();
+        });
+    </script>
+</body>
+</html>
